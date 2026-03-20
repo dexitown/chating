@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chating</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0f0f0f;
+    color: #f0ede8;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* LOGIN SCREEN */
+  #login-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 32px;
+    background: #181818;
+    border: 0.5px solid #2a2a2a;
+    border-radius: 20px;
+    width: 320px;
+  }
+  #login-screen h1 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+    color: #f0ede8;
+  }
+  #login-screen p {
+    font-size: 13px;
+    color: #666;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .login-input {
+    width: 100%;
+    background: #111;
+    border: 0.5px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: #f0ede8;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: #1D9E75; }
+  .login-btn {
+    width: 100%;
+    padding: 12px;
+    background: #1D9E75;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .login-btn:hover { background: #0F6E56; }
+  .login-btn:active { transform: scale(0.98); }
+
+  /* CHAT SCREEN */
+  #chat-screen {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    max-width: 480px;
+    height: 100dvh;
+    background: #111;
+  }
+
+  #chat-header {
+    padding: 16px 18px;
+    border-bottom: 0.5px solid #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #181818;
+  }
+  #chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #1D9E75;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  #chat-name { font-size: 15px; font-weight: 500; color: #f0ede8; }
+  #chat-status { font-size: 12px; color: #1D9E75; margin-top: 1px; }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scroll-behavior: smooth;
+  }
+  #messages::-webkit-scrollbar { width: 3px; }
+  #messages::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+  .msg-wrap { display: flex; flex-direction: column; max-width: 75%; }
+  .msg-wrap.mine { align-self: flex-end; align-items: flex-end; }
+  .msg-wrap.theirs { align-self: flex-start; align-items: flex-start; }
+
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .mine .bubble {
+    background: #1D9E75;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .theirs .bubble {
+    background: #1e1e1e;
+    color: #f0ede8;
+    border-bottom-left-radius: 4px;
+    border: 0.5px solid #2a2a2a;
+  }
+  .msg-meta {
+    font-size: 11px;
+    color: #444;
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+
+  /* date separator */
+  .date-sep {
+    align-self: center;
+    font-size: 11px;
+    color: #333;
+    background: #181818;
+    border: 0.5px solid #222;
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin: 8px 0;
+  }
+
+  #footer {
+    padding: 12px 14px;
+    border-top: 0.5px solid #1e1e1e;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: #181818;
+  }
+  #msg-input {
+    flex: 1;
+    background: #111;
+    border: 0.5px solid #2a2a2a;
+    border-radius: 22px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: #f0ede8;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.4;
+  }
+  #msg-input:focus { border-color: #1D9E75; }
+  #msg-input::placeholder { color: #444; }
+
+  #send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1D9E75;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #send-btn:hover { background: #0F6E56; }
+  #send-btn:active { transform: scale(0.95); }
+  #send-btn svg { fill: white; width: 16px; height: 16px; }
+
+  /* typing indicator */
+  #typing-indicator {
+    display: none;
+    align-self: flex-start;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background: #1e1e1e;
+    border: 0.5px solid #2a2a2a;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+  }
+  #typing-indicator span {
+    font-size: 12px;
+    color: #555;
+  }
+  .tdot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #444;
+    animation: tdot 1.2s infinite;
+  }
+  .tdot:nth-child(2) { animation-delay: 0.2s; }
+  .tdot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes tdot {
+    0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <h1>💬 Chating</h1>
+  <p>Ingresá tu nombre para entrar al chat. Compartí este archivo con quien quieras chatear.</p>
+  <input class="login-input" id="name-input" type="text" placeholder="Tu nombre..." maxlength="20" />
+  <button class="login-btn" id="enter-btn">Entrar al chat</button>
+</div>
+
+<!-- CHAT -->
+<div id="chat-screen">
+  <div id="chat-header">
+    <div id="chat-avatar">💬</div>
+    <div>
+      <div id="chat-name">Chat</div>
+      <div id="chat-status">conectado</div>
+    </div>
+  </div>
+  <div id="messages">
+    <div id="typing-indicator">
+      <div class="tdot"></div>
+      <div class="tdot"></div>
+      <div class="tdot"></div>
+      <span id="typing-name"></span>
+    </div>
+  </div>
+  <div id="footer">
+    <textarea id="msg-input" rows="1" placeholder="Escribí un mensaje..."></textarea>
+    <button id="send-btn">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, onChildAdded, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAtkPUZZ9p2OUYE3eBWm4vd6ZcxrlSFZqY",
+    authDomain: "michat-4bf88.firebaseapp.com",
+    databaseURL: "https://michat-4bf88-default-rtdb.firebaseio.com",
+    projectId: "michat-4bf88",
+    storageBucket: "michat-4bf88.firebasestorage.app",
+    messagingSenderId: "968530847214",
+    appId: "1:968530847214:web:b89ff9245b265ab5f6daff"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let myName = '';
+  let typingTimeout = null;
+  let lastDate = '';
+
+  const loginScreen = document.getElementById('login-screen');
+  const chatScreen = document.getElementById('chat-screen');
+  const nameInput = document.getElementById('name-input');
+  const enterBtn = document.getElementById('enter-btn');
+  const messagesEl = document.getElementById('messages');
+  const msgInput = document.getElementById('msg-input');
+  const sendBtn = document.getElementById('send-btn');
+  const typingIndicator = document.getElementById('typing-indicator');
+  const typingName = document.getElementById('typing-name');
+  const chatStatus = document.getElementById('chat-status');
+
+  // Enter to login
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') enterChat(); });
+  enterBtn.addEventListener('click', enterChat);
+
+  function enterChat() {
+    const name = nameInput.value.trim();
+    if (!name) return;
+    myName = name;
+    loginScreen.style.display = 'none';
+    chatScreen.style.display = 'flex';
+    document.getElementById('chat-name').textContent = 'Chat grupal';
+    listenMessages();
+    listenTyping();
+  }
+
+  function formatTime(ts) {
+    const d = new Date(ts);
+    return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    const today = new Date();
+    if (d.toDateString() === today.toDateString()) return 'Hoy';
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (d.toDateString() === yesterday.toDateString()) return 'Ayer';
+    return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+  }
+
+  function addMessage(data) {
+    const isMine = data.sender === myName;
+    const dateLabel = formatDate(data.timestamp);
+
+    if (dateLabel !== lastDate) {
+      lastDate = dateLabel;
+      const sep = document.createElement('div');
+      sep.className = 'date-sep';
+      sep.textContent = dateLabel;
+      messagesEl.insertBefore(sep, typingIndicator);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap ' + (isMine ? 'mine' : 'theirs');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = data.text;
+
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    meta.textContent = (isMine ? '' : data.sender + ' · ') + formatTime(data.timestamp);
+
+    wrap.appendChild(bubble);
+    wrap.appendChild(meta);
+    messagesEl.insertBefore(wrap, typingIndicator);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function listenMessages() {
+    const msgsRef = ref(db, 'messages');
+    onChildAdded(msgsRef, snap => {
+      addMessage(snap.val());
+    });
+  }
+
+  function listenTyping() {
+    const typingRef = ref(db, 'typing');
+    onValue(typingRef, snap => {
+      const data = snap.val();
+      if (!data) { typingIndicator.style.display = 'none'; return; }
+      const others = Object.entries(data)
+        .filter(([name, ts]) => name !== myName && Date.now() - ts < 4000)
+        .map(([name]) => name);
+      if (others.length > 0) {
+        typingName.textContent = others.join(', ') + (others.length === 1 ? ' está escribiendo...' : ' están escribiendo...');
+        typingIndicator.style.display = 'flex';
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      } else {
+        typingIndicator.style.display = 'none';
+      }
+    });
+  }
+
+  function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text || !myName) return;
+    push(ref(db, 'messages'), {
+      sender: myName,
+      text,
+      timestamp: Date.now()
+    });
+    msgInput.value = '';
+    msgInput.style.height = 'auto';
+    clearTyping();
+  }
+
+  function setTyping() {
+    set(ref(db, 'typing/' + myName), Date.now());
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(clearTyping, 3000);
+  }
+
+  function clearTyping() {
+    remove(ref(db, 'typing/' + myName));
+    clearTimeout(typingTimeout);
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  msgInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  msgInput.addEventListener('input', () => {
+    msgInput.style.height = 'auto';
+    msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
+    setTyping();
+  });
+
+  window.addEventListener('beforeunload', clearTyping);
+</script>
+</body>
+</html>
