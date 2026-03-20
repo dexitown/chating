@@ -2,7 +2,13 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0e0c0a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Drift"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.png"/>
 <title>Drift</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
@@ -744,18 +750,26 @@ window.downloadPhoto = async (url, filename) => {
 // ── DELETE POST ──
 window.deletePost = async postId => {
   if (!confirm('¿Borrar esta publicación?')) return;
-  await remove(ref(db, 'posts/' + postId));
-  await remove(ref(db, 'comments/' + postId));
-  await remove(ref(db, 'saves/' + postId));
-  // recount actual posts from DB
-  const allPosts = await get(query(ref(db, 'posts'), orderByChild('timestamp'), limitToLast(200)));
-  let count = 0;
-  if (allPosts.exists()) allPosts.forEach(p => { if (p.val().uid === window.ME_UID) count++; });
-  await update(ref(db, 'users/' + window.ME_UID), { posts: count });
-  ME_DATA.posts = count;
-  toast('publicación eliminada');
-  await loadFeed();
-  await loadProfile();
+  try {
+    // remove from firebase
+    await remove(ref(db, 'posts/' + postId));
+    await remove(ref(db, 'comments/' + postId));
+    await remove(ref(db, 'saves/' + postId));
+    // recount
+    const allPosts = await get(ref(db, 'posts'));
+    let count = 0;
+    if (allPosts.exists()) allPosts.forEach(p => { if (p.val().uid === window.ME_UID) count++; });
+    await update(ref(db, 'users/' + window.ME_UID), { posts: count });
+    ME_DATA.posts = count;
+    toast('publicación eliminada ✓');
+    // force reload both
+    posts = [];
+    await loadFeed();
+    await loadProfile();
+  } catch(e) {
+    toast('error al borrar, intentá de nuevo');
+    console.error(e);
+  }
 };
 
 // ── COMMENTS ──
@@ -1162,6 +1176,11 @@ function toast(msg) {
 window.openSheet = id => document.getElementById(id).classList.add('on');
 window.closeSheet = id => document.getElementById(id).classList.remove('on');
 window.bgClose = (e, id) => { if (e.target === document.getElementById(id)) closeSheet(id); };
+</script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
